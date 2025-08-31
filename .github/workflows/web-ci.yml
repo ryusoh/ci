@@ -77,20 +77,39 @@ jobs:
         run: |
           if [ -f Makefile ]; then make -n build || true; fi
 
-      - name: ESLint (if config present)
-        if: ${{ hashFiles('eslint.config.*') != '' }}
+      - name: ESLint (prefer .ci-configs)
         run: |
-          npx --yes eslint . --max-warnings=0
+          if [ -f .ci-configs/js/eslint.config.cjs ]; then
+            npx --yes eslint . --config .ci-configs/js/eslint.config.cjs --max-warnings=0
+          elif [ -n "${{ hashFiles('eslint.config.*') }}" ]; then
+            npx --yes eslint . --max-warnings=0
+          else
+            echo "No ESLint config found; skipping"
+          fi
 
-      - name: Stylelint (if config present)
-        if: ${{ hashFiles('.stylelintrc.*') != '' }}
+      - name: Stylelint (prefer .ci-configs)
         run: |
-          npx --yes stylelint "**/*.css" --max-warnings=0 || true
+          if [ -f .ci-configs/js/.stylelintrc.cjs ]; then
+            IGNORE_ARG=""
+            if [ -f .ci-configs/js/.stylelintignore ]; then IGNORE_ARG="--ignore-path .ci-configs/js/.stylelintignore"; fi
+            npx --yes stylelint "**/*.css" --config .ci-configs/js/.stylelintrc.cjs $IGNORE_ARG --max-warnings=0 || true
+          elif [ -n "${{ hashFiles('.stylelintrc.*') }}" ]; then
+            npx --yes stylelint "**/*.css" --max-warnings=0 || true
+          else
+            echo "No Stylelint config found; skipping"
+          fi
 
-      - name: Prettier check (if config present)
-        if: ${{ hashFiles('.prettierrc*') != '' }}
+      - name: Prettier check (prefer .ci-configs)
         run: |
-          npx --yes prettier -c .
+          if [ -f .ci-configs/js/.prettierrc.json ]; then
+            IGNORE_ARG=""
+            if [ -f .ci-configs/js/.prettierignore ]; then IGNORE_ARG="--ignore-path .ci-configs/js/.prettierignore"; fi
+            npx --yes prettier -c . --config .ci-configs/js/.prettierrc.json $IGNORE_ARG
+          elif [ -n "${{ hashFiles('.prettierrc*') }}" ]; then
+            npx --yes prettier -c .
+          else
+            echo "No Prettier config found; skipping"
+          fi
 
       - name: Deploy (placeholder)
         if: ${{ inputs.deploy }}
