@@ -1,0 +1,59 @@
+name: Submodule Sync PR
+
+on:
+  workflow_call:
+    inputs:
+      depth:
+        description: "Fetch depth for checkout"
+        required: false
+        default: 0
+        type: number
+      branch-name:
+        description: "PR branch name"
+        required: false
+        default: chore/submodule-sync
+        type: string
+      pr-title:
+        description: "Pull Request title"
+        required: false
+        default: "chore(submodule): サブモジュールを最新に更新"
+        type: string
+      pr-body:
+        description: "Pull Request body"
+        required: false
+        default: "`git submodule update --remote --recursive` による更新を反映します。"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ inputs.depth }}
+          submodules: recursive
+
+      - name: Sync and update submodules
+        shell: bash
+        run: |
+          set -euo pipefail
+          git submodule sync --recursive
+          git submodule update --init --remote --recursive
+          echo "--- Submodule status after update ---"
+          git submodule status --recursive || true
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: ${{ inputs['branch-name'] }}
+          title: ${{ inputs['pr-title'] }}
+          body: ${{ inputs['pr-body'] }}
+          commit-message: ${{ inputs['pr-title'] }}
+          labels: ci, chore, submodule
+          delete-branch: true
+
