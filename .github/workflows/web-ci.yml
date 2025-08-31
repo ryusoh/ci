@@ -69,12 +69,28 @@ jobs:
         run: echo ".pre-commit-config.yaml not found; skipping pre-commit"
 
       - name: Install Node deps (if package.json exists)
+        id: node_install
         run: |
-          if [ -f package.json ]; then npm ci; fi
+          if [ -f package.json ]; then npm ci; else echo "no-pkg"; fi
 
       - name: Build/Test (no-op if absent)
         run: |
           if [ -f Makefile ]; then make -n build || true; fi
+
+      - name: ESLint (if config present)
+        if: ${{ hashFiles('eslint.config.*') != '' }}
+        run: |
+          npx --yes eslint . --max-warnings=0
+
+      - name: Stylelint (if config present)
+        if: ${{ hashFiles('.stylelintrc.*') != '' }}
+        run: |
+          npx --yes stylelint "**/*.css" --max-warnings=0 || true
+
+      - name: Prettier check (if config present)
+        if: ${{ hashFiles('.prettierrc*') != '' }}
+        run: |
+          npx --yes prettier -c .
 
       - name: Deploy (placeholder)
         if: ${{ inputs.deploy }}
