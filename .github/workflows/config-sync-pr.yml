@@ -8,6 +8,11 @@ on:
         required: false
         default: main
         type: string
+      force-pr:
+        description: "差分がなくても PR を作成する（マーカーを更新）"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -43,6 +48,11 @@ jobs:
               cp _ci_configs/.markdownlint.jsonc ./.markdownlint.jsonc
               changed=1
             fi
+          fi
+          if [ "${{ inputs['force-pr'] }}" = "true" ] && [ "$changed" -eq 0 ]; then
+            mkdir -p .github
+            date -u +%Y-%m-%dT%H:%M:%SZ > .github/config-sync.timestamp
+            changed=1
           fi
           echo "changed=${changed}" >> "$GITHUB_OUTPUT"
 

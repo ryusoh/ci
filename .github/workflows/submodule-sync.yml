@@ -23,6 +23,11 @@ on:
         required: false
         default: "`git submodule update --remote --recursive` による更新を反映します。"
         type: string
+      force-pr:
+        description: "差分がなくても PR を作成する（マーカーを更新）"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -46,6 +51,13 @@ jobs:
           git submodule update --init --remote --recursive
           echo "--- Submodule status after update ---"
           git submodule status --recursive || true
+
+      - name: Force change marker (optional)
+        if: ${{ inputs['force-pr'] }}
+        shell: bash
+        run: |
+          mkdir -p .github
+          date -u +%Y-%m-%dT%H:%M:%SZ > .github/submodule-sync.timestamp
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
