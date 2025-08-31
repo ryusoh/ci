@@ -21,6 +21,8 @@ jobs:
         run: |
           mkdir -p _ci_configs
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/pre-commit/.pre-commit-config.yaml" -o _ci_configs/.pre-commit-config.yaml || true
+          # Prefer strict JSON; fall back to JSONC if present
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/markdownlint/.markdownlint.json" -o _ci_configs/.markdownlint.json || true
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/markdownlint/.markdownlint.jsonc" -o _ci_configs/.markdownlint.jsonc || true
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/eslint.config.cjs" -o _ci_configs/eslint.config.cjs || true
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.stylelintrc.cjs" -o _ci_configs/.stylelintrc.cjs || true
@@ -41,16 +43,22 @@ jobs:
             echo "Canonical .pre-commit-config.yaml not found in ci repo; skipping";
           fi
 
-      - name: Diff .markdownlint.jsonc
+      - name: Diff markdownlint config
         run: |
-          if [ -f _ci_configs/.markdownlint.jsonc ]; then
+          if [ -f _ci_configs/.markdownlint.json ]; then
+            if [ -f .markdownlint.json ]; then
+              diff -u _ci_configs/.markdownlint.json .markdownlint.json || true
+            else
+              echo "NOTE: .markdownlint.json missing in repo";
+            fi
+          elif [ -f _ci_configs/.markdownlint.jsonc ]; then
             if [ -f .markdownlint.jsonc ]; then
               diff -u _ci_configs/.markdownlint.jsonc .markdownlint.jsonc || true
             else
               echo "NOTE: .markdownlint.jsonc missing in repo";
             fi
           else
-            echo "Canonical .markdownlint.jsonc not found in ci repo; skipping";
+            echo "Canonical markdownlint config not found in ci repo; skipping";
           fi
 
       - name: Diff ESLint/Stylelint/Prettier

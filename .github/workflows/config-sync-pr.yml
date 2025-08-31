@@ -29,6 +29,8 @@ jobs:
         run: |
           mkdir -p _ci_configs
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/pre-commit/.pre-commit-config.yaml" -o _ci_configs/.pre-commit-config.yaml || true
+          # Prefer strict JSON; fall back to JSONC
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/markdownlint/.markdownlint.json" -o _ci_configs/.markdownlint.json || true
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/markdownlint/.markdownlint.jsonc" -o _ci_configs/.markdownlint.jsonc || true
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/eslint.config.cjs" -o _ci_configs/eslint.config.cjs || true
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.stylelintrc.cjs" -o _ci_configs/.stylelintrc.cjs || true
@@ -55,9 +57,14 @@ jobs:
               fi
             fi
           done
-          if [ -f _ci_configs/.markdownlint.jsonc ]; then
+          if [ -f _ci_configs/.markdownlint.json ]; then
+            if ! cmp -s _ci_configs/.markdownlint.json .markdownlint.json 2>/dev/null; then
+              cp _ci_configs/.markdownlint.json ./.markdownlint.json
+              changed=1
+            fi
+          elif [ -f _ci_configs/.markdownlint.jsonc ]; then
+            # If only JSONC exists centrally, write to JSON for repos
             if ! cmp -s _ci_configs/.markdownlint.jsonc .markdownlint.jsonc 2>/dev/null; then
-              mkdir -p .
               cp _ci_configs/.markdownlint.jsonc ./.markdownlint.jsonc
               changed=1
             fi
