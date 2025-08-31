@@ -22,6 +22,11 @@ jobs:
           mkdir -p _ci_configs
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/pre-commit/.pre-commit-config.yaml" -o _ci_configs/.pre-commit-config.yaml || true
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/markdownlint/.markdownlint.jsonc" -o _ci_configs/.markdownlint.jsonc || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/eslint.config.cjs" -o _ci_configs/eslint.config.cjs || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.stylelintrc.cjs" -o _ci_configs/.stylelintrc.cjs || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.stylelintignore" -o _ci_configs/.stylelintignore || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.prettierrc.json" -o _ci_configs/.prettierrc.json || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.prettierignore" -o _ci_configs/.prettierignore || true
           ls -la _ci_configs
 
       - name: Diff .pre-commit-config.yaml
@@ -48,3 +53,14 @@ jobs:
             echo "Canonical .markdownlint.jsonc not found in ci repo; skipping";
           fi
 
+      - name: Diff ESLint/Stylelint/Prettier
+        run: |
+          for f in eslint.config.cjs .stylelintrc.cjs .stylelintignore .prettierrc.json .prettierignore; do
+            if [ -f _ci_configs/"$f" ]; then
+              if [ -f "$f" ]; then
+                diff -u _ci_configs/"$f" "$f" || true
+              else
+                echo "NOTE: $f missing in repo";
+              fi
+            fi
+          done

@@ -30,6 +30,11 @@ jobs:
           mkdir -p _ci_configs
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/pre-commit/.pre-commit-config.yaml" -o _ci_configs/.pre-commit-config.yaml || true
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/markdownlint/.markdownlint.jsonc" -o _ci_configs/.markdownlint.jsonc || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/eslint.config.cjs" -o _ci_configs/eslint.config.cjs || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.stylelintrc.cjs" -o _ci_configs/.stylelintrc.cjs || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.stylelintignore" -o _ci_configs/.stylelintignore || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.prettierrc.json" -o _ci_configs/.prettierrc.json || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.prettierignore" -o _ci_configs/.prettierignore || true
 
       - name: Update working tree
         id: update
@@ -42,6 +47,14 @@ jobs:
               changed=1
             fi
           fi
+          for f in eslint.config.cjs .stylelintrc.cjs .stylelintignore .prettierrc.json .prettierignore; do
+            if [ -f _ci_configs/"$f" ]; then
+              if ! cmp -s _ci_configs/"$f" "$f" 2>/dev/null; then
+                cp _ci_configs/"$f" "$f"
+                changed=1
+              fi
+            fi
+          done
           if [ -f _ci_configs/.markdownlint.jsonc ]; then
             if ! cmp -s _ci_configs/.markdownlint.jsonc .markdownlint.jsonc 2>/dev/null; then
               mkdir -p .
