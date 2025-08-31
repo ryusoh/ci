@@ -38,7 +38,7 @@ jobs:
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.prettierrc.json" -o _ci_configs/.prettierrc.json || true
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/js/.prettierignore" -o _ci_configs/.prettierignore || true
 
-      - name: Update working tree
+      - name: Update working tree (.ci-configs)
         id: update
         run: |
           changed=0
@@ -49,10 +49,12 @@ jobs:
               changed=1
             fi
           fi
+          mkdir -p .ci-configs/js
           for f in eslint.config.cjs .stylelintrc.cjs .stylelintignore .prettierrc.json .prettierignore; do
             if [ -f _ci_configs/"$f" ]; then
-              if ! cmp -s _ci_configs/"$f" "$f" 2>/dev/null; then
-                cp _ci_configs/"$f" "$f"
+              target=".ci-configs/js/$f"
+              if ! cmp -s _ci_configs/"$f" "$target" 2>/dev/null; then
+                cp _ci_configs/"$f" "$target"
                 changed=1
               fi
             fi

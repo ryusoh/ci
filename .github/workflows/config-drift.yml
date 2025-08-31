@@ -61,14 +61,16 @@ jobs:
             echo "Canonical markdownlint config not found in ci repo; skipping";
           fi
 
-      - name: Diff ESLint/Stylelint/Prettier
+      - name: Diff ESLint/Stylelint/Prettier (.ci-configs)
         run: |
+          mkdir -p .ci-configs/js
           for f in eslint.config.cjs .stylelintrc.cjs .stylelintignore .prettierrc.json .prettierignore; do
             if [ -f _ci_configs/"$f" ]; then
-              if [ -f "$f" ]; then
-                diff -u _ci_configs/"$f" "$f" || true
+              target=".ci-configs/js/$f"
+              if [ -f "$target" ]; then
+                diff -u _ci_configs/"$f" "$target" || true
               else
-                echo "NOTE: $f missing in repo";
+                echo "NOTE: $target missing in repo";
               fi
             fi
           done
