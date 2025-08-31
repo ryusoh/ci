@@ -76,6 +76,11 @@ jobs:
           fi
           echo "changed=${changed}" >> "$GITHUB_OUTPUT"
 
+      - name: Cleanup temp files
+        if: steps.update.outputs.changed == '1'
+        run: |
+          rm -rf _ci_configs || true
+
       - name: Create Pull Request
         if: steps.update.outputs.changed == '1'
         uses: peter-evans/create-pull-request@v6
