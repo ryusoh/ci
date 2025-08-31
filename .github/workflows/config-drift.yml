@@ -1,0 +1,50 @@
+name: Config Drift Check
+
+on:
+  workflow_call:
+    inputs:
+      source-ref:
+        description: "Ref in ci repo to fetch canonical configs"
+        required: false
+        default: main
+        type: string
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch canonical configs
+        id: fetch
+        run: |
+          mkdir -p _ci_configs
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/pre-commit/.pre-commit-config.yaml" -o _ci_configs/.pre-commit-config.yaml || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/markdownlint/.markdownlint.jsonc" -o _ci_configs/.markdownlint.jsonc || true
+          ls -la _ci_configs
+
+      - name: Diff .pre-commit-config.yaml
+        run: |
+          if [ -f _ci_configs/.pre-commit-config.yaml ]; then
+            if [ -f .pre-commit-config.yaml ]; then
+              diff -u _ci_configs/.pre-commit-config.yaml .pre-commit-config.yaml || true
+            else
+              echo "NOTE: .pre-commit-config.yaml missing in repo";
+            fi
+          else
+            echo "Canonical .pre-commit-config.yaml not found in ci repo; skipping";
+          fi
+
+      - name: Diff .markdownlint.jsonc
+        run: |
+          if [ -f _ci_configs/.markdownlint.jsonc ]; then
+            if [ -f .markdownlint.jsonc ]; then
+              diff -u _ci_configs/.markdownlint.jsonc .markdownlint.jsonc || true
+            else
+              echo "NOTE: .markdownlint.jsonc missing in repo";
+            fi
+          else
+            echo "Canonical .markdownlint.jsonc not found in ci repo; skipping";
+          fi
+

@@ -1,0 +1,67 @@
+name: Config Sync PR
+
+on:
+  workflow_call:
+    inputs:
+      source-ref:
+        description: "Ref in ci repo to fetch canonical configs"
+        required: false
+        default: main
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch canonical configs
+        run: |
+          mkdir -p _ci_configs
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/pre-commit/.pre-commit-config.yaml" -o _ci_configs/.pre-commit-config.yaml || true
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/ci/${{ inputs['source-ref'] }}/configs/markdownlint/.markdownlint.jsonc" -o _ci_configs/.markdownlint.jsonc || true
+
+      - name: Update working tree
+        id: update
+        run: |
+          changed=0
+          if [ -f _ci_configs/.pre-commit-config.yaml ]; then
+            if ! cmp -s _ci_configs/.pre-commit-config.yaml .pre-commit-config.yaml 2>/dev/null; then
+              mkdir -p .
+              cp _ci_configs/.pre-commit-config.yaml ./.pre-commit-config.yaml
+              changed=1
+            fi
+          fi
+          if [ -f _ci_configs/.markdownlint.jsonc ]; then
+            if ! cmp -s _ci_configs/.markdownlint.jsonc .markdownlint.jsonc 2>/dev/null; then
+              mkdir -p .
+              cp _ci_configs/.markdownlint.jsonc ./.markdownlint.jsonc
+              changed=1
+            fi
+          fi
+          echo "changed=${changed}" >> "$GITHUB_OUTPUT"
+
+      - name: Create Pull Request
+        if: steps.update.outputs.changed == '1'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/sync-ci-configs
+          title: "chore(ci): 中央CI設定とのドリフトを解消"
+          commit-message: |
+            chore(ci): 中央CI設定とのドリフトを解消
+            * .pre-commit-config.yaml / .markdownlint.jsonc を ci リポジトリに同期
+          body: |
+            このPRは中央CIの設定ファイルと差分が検出されたため自動作成されました。
+            反映後、共有CIでのチェック内容が統一されます。
+          labels: ci, chore, automation
+          delete-branch: true
+
+      - name: No changes detected
+        if: steps.update.outputs.changed != '1'
+        run: echo "No config changes detected."
+
