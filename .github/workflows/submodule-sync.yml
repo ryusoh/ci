@@ -56,4 +56,6 @@ jobs:
           commit-message: ${{ inputs['pr-title'] }}
           labels: ci, chore, submodule
           delete-branch: true
-
+          # Auto-merge once required checks pass (needs auto-merge enabled in repo)
+          auto-merge: true
+          merge-method: squash
