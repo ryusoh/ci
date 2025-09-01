@@ -43,6 +43,11 @@ jobs:
           npm -v
           python -V
 
+      - name: Install Node deps (if package.json exists)
+        id: node_install
+        run: |
+          if [ -f package.json ]; then npm ci; else echo "no-pkg"; fi
+
       - name: Check pre-commit config
         id: pc
         if: ${{ inputs['run-precommit'] }}
@@ -68,10 +73,7 @@ jobs:
         if: ${{ inputs['run-precommit'] && steps.pc.outputs.present != 'true' }}
         run: echo ".pre-commit-config.yaml not found; skipping pre-commit"
 
-      - name: Install Node deps (if package.json exists)
-        id: node_install
-        run: |
-          if [ -f package.json ]; then npm ci; else echo "no-pkg"; fi
+      # (moved Node deps install before pre-commit)
 
       - name: Build/Test (no-op if absent)
         run: |
