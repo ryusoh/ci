@@ -38,7 +38,7 @@ repos:
     hooks:
       - id: eslint
         name: eslint (staged JS)
-        entry: bash -lc 'npx eslint --max-warnings=0 --'
+        entry: bash -lc 'npx eslint --max-warnings=0 --no-warn-ignored --'
         language: system
         types_or: [javascript]
         pass_filenames: true
