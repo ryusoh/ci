@@ -27,6 +27,7 @@ jobs:
 ```
 
 入力パラメータ:
+
 - `node-version` (string): Node.js のバージョン
 - `python-version` (string): Python のバージョン
 - `run-precommit` (boolean): pre-commit を実行するか
@@ -80,6 +81,7 @@ git push --tags
 - 型チェック（任意）: `mypy`（`scripts/` と Python テスト配下）
 
 注意:
+
 - Node が必要なフック（Prettier/ESLint/Stylelint/Jest）は `npx` 経由で実行します。
 - 各リポジトリの `.ci-configs` に ESLint/Stylelint/Prettier 設定を配置し、ルート設定はラッパー化する運用を推奨します。
 

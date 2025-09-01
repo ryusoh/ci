@@ -22,8 +22,8 @@ repos:
     rev: v0.41.0
     hooks:
       - id: markdownlint
-        args: ["--config", "configs/markdownlint/.markdownlint.json"]
-
+        args: ["--config", ".markdownlint.json"]
+  
   # JavaScript tooling (commit): format + lint
   - repo: local
     hooks:
@@ -33,7 +33,7 @@ repos:
         language: system
         files: '\\.(js|css|json|yml|yaml|md|html)$'
         pass_filenames: true
-
+  
   - repo: local
     hooks:
       - id: eslint
@@ -42,7 +42,7 @@ repos:
         language: system
         types_or: [javascript]
         pass_filenames: true
-
+  
   - repo: local
     hooks:
       - id: stylelint
