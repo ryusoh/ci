@@ -15,3 +15,5 @@ venv/
 .markdownlint.jsonc
 .pre-commit-config.yaml
 **/*.min.js
+js/ambient.js
+js/ga.js
