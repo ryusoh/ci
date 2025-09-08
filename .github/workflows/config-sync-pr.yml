@@ -84,7 +84,7 @@ jobs:
           title: "chore(ci): 中央CI設定とのドリフトを解消"
           commit-message: |
             chore(ci): 中央CI設定とのドリフトを解消
-            * .pre-commit-config.yaml / .markdownlint.jsonc を ci リポジトリに同期
+            * .pre-commit-config.yaml / .markdownlint.json を ci リポジトリに同期
           body: |
             このPRは中央CIの設定ファイルと差分が検出されたため自動作成されました。
             反映後、共有CIでのチェック内容が統一されます。
