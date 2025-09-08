@@ -14,8 +14,14 @@ repos:
     rev: v4.6.0
     hooks:
       - id: end-of-file-fixer
+        # Do not touch generated data CSVs
+        exclude: ^data/.*\.csv$
       - id: trailing-whitespace
+        # Do not touch generated data CSVs
+        exclude: ^data/.*\.csv$
       - id: mixed-line-ending
+        # Do not touch generated data CSVs
+        exclude: ^data/.*\.csv$
       - id: detect-private-key
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
@@ -87,4 +93,3 @@ repos:
     hooks:
       - id: mypy
         files: '^scripts/|^tests/python/'
-        args: ["--ignore-path", ".gitignore"]
