@@ -12,6 +12,11 @@ on:
       run-precommit:
         required: true
         type: boolean
+      checkout-submodules:
+        description: "Whether to checkout git submodules (recursive)"
+        required: false
+        default: true
+        type: boolean
       deploy:
         required: false
         default: false
@@ -21,11 +26,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository (with submodules)
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
+          submodules: ${{ inputs['checkout-submodules'] && 'recursive' || 'false' }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
